@@ -2,7 +2,6 @@
 // 	Writen - HMS April 2017
 //  Supports TCP and UDP - both client and server
 
-
 #ifndef __NETWORKS_H__
 #define __NETWORKS_H__
 

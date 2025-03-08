@@ -208,5 +208,3 @@ int setupUdpClientToServer(struct sockaddr_in6 *serverAddress, char * hostName, 
 		
 	return socketNum;
 }
-
-

@@ -10,11 +10,13 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include "server_setup.h"
 #include "gethostbyname.h"
 #include "networks.h"
 #include "safeUtil.h"
+#include "cpe464.h"
+#include "packet.h"
 
-#define MAXBUF 80
 
 void processClient(int socketNum);
 int checkArgs(int argc, char *argv[]);
@@ -23,9 +25,9 @@ int main ( int argc, char *argv[]  )
 { 
 	int socketNum = 0;				
 	int portNumber = 0;
-
+	sendtoErr_init(atof(argv[1]), DROP_OFF, FLIP_OFF, DEBUG_ON, RSEED_OFF);
 	portNumber = checkArgs(argc, argv);
-		
+
 	socketNum = udpServerSetup(portNumber);
 
 	processClient(socketNum);
@@ -42,20 +44,23 @@ void processClient(int socketNum)
 	struct sockaddr_in6 client;		
 	int clientAddrLen = sizeof(client);	
 	
-	buffer[0] = '\0';
-	while (buffer[0] != '.')
-	{
-		dataLen = safeRecvfrom(socketNum, buffer, MAXBUF, 0, (struct sockaddr *) &client, &clientAddrLen);
-	
-		printf("Received message from client with ");
-		printIPInfo(&client);
-		printf(" Len: %d \'%s\'\n", dataLen, buffer);
+	FILE * fp = NULL;
 
-		// just for fun send back to client number of bytes received
-		sprintf(buffer, "bytes: %d", dataLen);
-		safeSendto(socketNum, buffer, strlen(buffer)+1, 0, (struct sockaddr *) & client, clientAddrLen);
+	// while (1)
+	// {
 
-	}
+	ServerSetupFSM(socketNum, buffer, fp, (struct sockaddr *) &client, &clientAddrLen, dataLen);
+
+		// dataLen = safeRecvfrom(socketNum, buffer, MAXBUF, 0, (struct sockaddr *) &client, &clientAddrLen)
+		// printf("Received message from client with ");
+		// printIPInfo(&client);
+		// printf(" Len: %d \'%s\'\n", dataLen, buffer);
+
+		// // just for fun send back to client number of bytes received
+		// sprintf(buffer, "bytes: %d", dataLen);
+		// safeSendto(socketNum, buffer, strlen(buffer)+1, 0, (struct sockaddr *) & client, clientAddrLen);
+
+	// }
 }
 
 int checkArgs(int argc, char *argv[])
@@ -63,18 +68,16 @@ int checkArgs(int argc, char *argv[])
 	// Checks args and returns port number
 	int portNumber = 0;
 
-	if (argc > 2)
+	if ((argc > 3) || (argc < 2) )
 	{
-		fprintf(stderr, "Usage %s [optional port number]\n", argv[0]);
+		fprintf(stderr, "Usage %s error-rate [optional port number]\n", argv[0]);
 		exit(-1);
 	}
 	
-	if (argc == 2)
+	if (argc == 3)
 	{
-		portNumber = atoi(argv[1]);
+		portNumber = atoi(argv[2]);
 	}
 	
 	return portNumber;
 }
-
-
