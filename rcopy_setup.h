@@ -14,6 +14,7 @@
 #include "packet.h"
 #include "safeUtil.h"
 #include "networks.h"
+#include "pollLib.h"
 
 
 typedef enum{
@@ -24,9 +25,9 @@ typedef enum{
 } RCOPY_STATES;
 
 
-int Rcopy_setup(int socketNum, char * argv[], char * buffer, struct sockaddr_in6 * server, struct pollfd * pollfds, int portNumber);
+int Rcopy_setup(int socketNum, char * argv[], char * buffer, struct sockaddr_in6 * server, int portNumber,uint8_t nextState);
 int Rcopy_setup_start(int socketNum,char * buffer, char * argv[], struct sockaddr_in6 * server);
-int Rcopy_setup_wait(int socketNum, char * buffer, char * argv[], struct sockaddr_in6 * server, struct pollfd * pollfds, int portNum);
+int Rcopy_setup_wait(int socketNum, char * buffer, char * argv[], struct sockaddr_in6 * server, int portNum, uint8_t nextState);
 void Rcopy_setup_error(int socketNum);
 
 #endif

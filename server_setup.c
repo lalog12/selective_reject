@@ -50,12 +50,10 @@ void ServerSetupUse(int socketNum, char * buffer, struct sockaddr * client, int 
 }
 
 int ServerSetupStart(int socketNum, char * buffer, FILE * fp, uint16_t dataLen, struct sockaddr * client, int * clientAddrLen){
-    struct pollfd pollfds[1];
-	pollfds[0].fd = socketNum;
-	pollfds[0].events = POLLIN;
 
-    poll(pollfds, 1, -1);
-    dataLen = safeRecvfrom(pollfds[0].fd, buffer, MAXBUF, 0, (struct sockaddr *) client, clientAddrLen);
+
+    pollCall(-1);
+    dataLen = safeRecvfrom(socketNum, buffer, MAXBUF, 0, (struct sockaddr *) client, clientAddrLen);
 
     uint16_t checksum = Checksum_Corrupt(buffer, dataLen);
 
@@ -72,4 +70,5 @@ int ServerSetupStart(int socketNum, char * buffer, FILE * fp, uint16_t dataLen, 
     else{
         return SERVER_USE_STATE;    // IMPLEMENT USE STATE EVERYTHING SHOULD BE GOOD.
     }
+
 }

@@ -16,6 +16,7 @@
 #include "safeUtil.h"
 #include "cpe464.h"
 #include "packet.h"
+#include "pollLib.h"
 
 
 void processClient(int socketNum);
@@ -25,7 +26,7 @@ int main ( int argc, char *argv[]  )
 { 
 	int socketNum = 0;				
 	int portNumber = 0;
-	sendtoErr_init(atof(argv[1]), DROP_OFF, FLIP_OFF, DEBUG_ON, RSEED_OFF);
+	sendtoErr_init(atof(argv[1]), DROP_ON, FLIP_ON, DEBUG_ON, RSEED_OFF);
 	portNumber = checkArgs(argc, argv);
 
 	socketNum = udpServerSetup(portNumber);
@@ -43,6 +44,9 @@ void processClient(int socketNum)
 	char buffer[MAXBUF + 1];	  
 	struct sockaddr_in6 client;		
 	int clientAddrLen = sizeof(client);	
+
+	setupPollSet();
+	addToPollSet(socketNum);
 	
 	FILE * fp = NULL;
 

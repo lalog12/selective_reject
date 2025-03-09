@@ -1,12 +1,11 @@
 #include "rcopy_setup.h"
+#include "rcopy_use.h"
 
-
-int Rcopy_setup(int socketNum, char * argv[],  char * buffer, struct sockaddr_in6 * server, struct pollfd * pollfds, int portNumber){
+int Rcopy_setup(int socketNum, char * argv[],  char * buffer, struct sockaddr_in6 * server, int portNumber, uint8_t nextState){
 
     int current_state = RCOPY_START_STATE;
 
-    pollfds[0].fd = socketNum;
-    pollfds[0].events = POLLIN;
+
 
     while(1){
         switch(current_state){
@@ -23,10 +22,10 @@ int Rcopy_setup(int socketNum, char * argv[],  char * buffer, struct sockaddr_in
                 break;
             
             case RCOPY_WAIT_STATE:
-                current_state = Rcopy_setup_wait(socketNum, buffer, argv, server, pollfds, portNumber);
+                current_state = Rcopy_setup_wait(socketNum, buffer, argv, server, portNumber, nextState);
                 break;
         }
-    }  
+    }
 } 
 
 void Rcopy_setup_error(int socketNum){
@@ -49,18 +48,19 @@ int Rcopy_setup_start(int socketNum, char * buffer, char * argv[], struct sockad
     return RCOPY_WAIT_STATE;
 }
 
-int Rcopy_setup_wait(int socketNum, char * buffer, char * argv[], struct sockaddr_in6 * server, struct pollfd * pollfds, int portNum){
+int Rcopy_setup_wait(int socketNum, char * buffer, char * argv[], struct sockaddr_in6 * server, int portNum, uint8_t nextState){
 
     int pollReturn = 0;
     int counter = 0;
     int serverAddrLen = sizeof(struct sockaddr_in6);
 
-	while((pollReturn = poll(pollfds, 1, 1000)) <= 0){
+	while((pollReturn = pollCall(1000)) <= 0){
 
-		if (pollReturn == 0){
+		if (pollReturn == -1){
             close(socketNum);
+            removeFromPollSet(socketNum);
 	        socketNum = setupUdpClientToServer(server, argv[6], portNum);
-            pollfds[0].fd = socketNum;
+            addToPollSet(socketNum);
             printf("Sending packet: %s", buffer);
             safeSendto(socketNum, buffer, 15 + strlen(argv[1]), 0, (struct sockaddr *) server, serverAddrLen);
             counter++;
@@ -70,20 +70,28 @@ int Rcopy_setup_wait(int socketNum, char * buffer, char * argv[], struct sockadd
             }
 		}
 
-        if(pollReturn < 0){
-            fprintf(stderr, "Error with poll call in rcopy_setup.c:54  (Rcopy_setup_wait) \n");
-        }
 	}
-
-    int len = safeRecvfrom(socketNum, buffer, MAXRECV, 0, (struct sockaddr *) server, &serverAddrLen);
+    
+    int len = safeRecvfrom(pollReturn, buffer, MAXRECV, 0, (struct sockaddr *) server, &serverAddrLen);
 
     uint16_t checksum = Checksum_Corrupt(buffer, len);
-    // message is intact and packet contains f.n ack, data packet, or resent data packet.
-    if( (checksum == 0 && ((buffer[6] == 9 && buffer[7] == 0) || buffer[6] == 16 || buffer[6] == 18))){   // buffer[6] is flag buffer[7] = 0 is ack, is nack
+    printf("Before checkSum check\n");
+    // message is intact and packet contains f.n ack (9).
+    if(checksum == 0 && (buffer[7] == 0 && buffer[6] == 9) ){   // buffer[6] is flag buffer[7] = 0 is ack, 1 is nack
+        nextState = RCOPY_USE_WAIT;
+        printf("nextState = RCOPY_USE_WAIT\n");
         return RCOPY_USE_STATE;
     }
+    // flag is data packet (16), or resent data packet (18).
+    else if(checksum == 0 && (buffer[6] == 16 || buffer[6] == 18)){
+        nextState = RCOPY_USE_SEND;
+        printf("nextState = RCOPY_USE_SEND\n");
+        return RCOPY_USE_STATE;
+    }
+
     else if(checksum == 0 && buffer[6] == 9 && buffer[7] == 1){    // message is intact and packet contains f.n nack
         fprintf(stderr, "Error: file %s not found\n", argv[1]);
+        removeFromPollSet(socketNum);
         close(socketNum);
         exit(1);
     }

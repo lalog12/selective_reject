@@ -20,6 +20,9 @@
 #include "networks.h"
 #include "safeUtil.h"
 #include "rcopy_setup.h"
+#include "rcopy_use.h"
+#include "buffer.h"
+#include "pollLib.h"
 
 #define MAXBUF 80
 
@@ -52,12 +55,19 @@ void talkToServer(int socketNum, struct sockaddr_in6 * server, char * argv[], in
 	// int serverAddrLen = sizeof(struct sockaddr_in6);
 	// char * ipString = NULL;
 	// int dataLen = 0; 
-	char buffer[MAXBUF+1];
+	char buffer[atol(argv[4])];    // argv[4] is rcopy buffer-size
 
-	// adding server connected socket to poll.
-	struct pollfd pollfds[1];
+	setupPollSet();
+	addToPollSet(socketNum);
 
-	socketNum = Rcopy_setup(socketNum, argv, buffer, server, pollfds, portNumber);
+	//FILE * outputfd = fopen(argv[2], "wb");
+
+	//Buffer * buffer_man = buffer_init(atol(argv[5]), outputfd); // argv[5] is server's window size.
+
+	uint8_t nextState = 0;
+
+	socketNum = Rcopy_setup(socketNum, argv, buffer, server, portNumber, nextState);
+	//rcopyUseFSM(socketNum, argv, buffer, server, nextState, buffer_man);
 
 	// buffer[0] = '\0';
 	// while (buffer[0] != '.')
