@@ -15,6 +15,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
+#include "globals.h"
 #include "cpe464.h"
 #include "gethostbyname.h"
 #include "networks.h"
@@ -41,7 +42,7 @@ int main (int argc, char *argv[])
 	
 	socketNum = setupUdpClientToServer(&server, argv[6], portNumber);
 
-	sendErr_init(atof(argv[5]), DROP_ON, FLIP_ON, DEBUG_ON, RSEED_OFF);  
+	sendErr_init(atof(argv[5]), DROP_ON, FLIP_ON, DEBUG_ON, RSEED_ON);  
 
 	talkToServer(socketNum, &server, argv, portNumber);
 	
@@ -60,14 +61,14 @@ void talkToServer(int socketNum, struct sockaddr_in6 * server, char * argv[], in
 	setupPollSet();
 	addToPollSet(socketNum);
 
-	//FILE * outputfd = fopen(argv[2], "wb");
+	int outputfd = open(argv[2], O_WRONLY | O_TRUNC | O_CREAT, 0666);   // write to file, delete everything beforehand, create file if doesn't exist, everyone can read and write
 
-	//Buffer * buffer_man = buffer_init(atol(argv[5]), outputfd); // argv[5] is server's window size.
+	Buffer * buffer_man = buffer_init(atol(argv[5]), outputfd); // argv[5] is server's window size.  // need to be same size do that packets don't overwrite each other using %
 
-	uint8_t nextState = 0;
+	uint8_t nextState;
 
-	socketNum = Rcopy_setup(socketNum, argv, buffer, server, portNumber, nextState);
-	//rcopyUseFSM(socketNum, argv, buffer, server, nextState, buffer_man);
+	socketNum = Rcopy_setup(socketNum, argv, buffer, server, portNumber, &nextState);
+	rcopyUseFSM(socketNum, argv, buffer, server, &nextState, buffer_man);
 
 	// buffer[0] = '\0';
 	// while (buffer[0] != '.')

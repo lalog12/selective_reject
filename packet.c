@@ -7,6 +7,23 @@ void Default_Header(uint32_t seqNum, char * buffer, uint8_t flag){
     buffer[6] = flag;  // Flag
 }
 
+uint32_t GetSeqNum(char * buffer){
+    uint32_t seqNumNet = 0;
+    memcpy(&seqNumNet, buffer, 4);
+    return ntohl(seqNumNet);
+}
+
+uint8_t sendRRorSrej(char * buffer, uint32_t packetSeqNum, uint8_t flag, uint32_t RRSeqNum){
+    uint32_t packetSeqNumNet =  htonl(packetSeqNum);
+    uint32_t RRSeqNumNet = htonl(RRSeqNum);
+
+    memcpy(buffer,  &packetSeqNumNet, 4);  // Sequence Number in network order
+    memset(buffer + 4, 0, 2);  // checksum to 0 
+    buffer[6] = flag;
+    memcpy(buffer + 7, &RRSeqNumNet, 4);   // RR Sequence Number in network order
+    return 11;     // length of RR packet
+}
+
 void IncrementSeqNum(char * buffer){
     uint32_t seqNum = 0;
     memcpy(&seqNum, buffer, 4);
@@ -34,9 +51,6 @@ void Insert_Checksum(char * buffer, uint16_t str_len){
     memcpy(buffer + 4, &checksum, 2); // Checksum
 }
 
-void Header_File_TransferSR(char * buffer, uint8_t flag){
-    buffer[7] = flag;
-}
 
 uint16_t Checksum_Corrupt(char * buffer, int Len){
     uint16_t checksum = in_cksum((unsigned short *) buffer, Len);

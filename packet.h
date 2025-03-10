@@ -18,5 +18,7 @@ void Insert_Checksum(char * buffer, uint16_t str_len);
 uint16_t Checksum_Corrupt(char * buffer, int Len);
 void Default_Header(uint32_t seqNum, char * buffer, uint8_t flag);
 void Header_File_TransferSR(char * buffer, uint8_t flag);
+uint32_t GetSeqNum(char * buffer);
+uint8_t sendRRorSrej(char * buffer, uint32_t packetSeqNum, uint8_t flag, uint32_t RRSeqNum);
 
 #endif

@@ -1,7 +1,7 @@
 #include "rcopy_setup.h"
 #include "rcopy_use.h"
 
-int Rcopy_setup(int socketNum, char * argv[],  char * buffer, struct sockaddr_in6 * server, int portNumber, uint8_t nextState){
+int Rcopy_setup(int socketNum, char * argv[],  char * buffer, struct sockaddr_in6 * server, int portNumber, uint8_t *nextState){
 
     int current_state = RCOPY_START_STATE;
 
@@ -48,7 +48,7 @@ int Rcopy_setup_start(int socketNum, char * buffer, char * argv[], struct sockad
     return RCOPY_WAIT_STATE;
 }
 
-int Rcopy_setup_wait(int socketNum, char * buffer, char * argv[], struct sockaddr_in6 * server, int portNum, uint8_t nextState){
+int Rcopy_setup_wait(int socketNum, char * buffer, char * argv[], struct sockaddr_in6 * server, int portNum, uint8_t *nextState){
 
     int pollReturn = 0;
     int counter = 0;
@@ -69,7 +69,6 @@ int Rcopy_setup_wait(int socketNum, char * buffer, char * argv[], struct sockadd
                 return RCOPY_ERROR_STATE;
             }
 		}
-
 	}
     
     int len = safeRecvfrom(pollReturn, buffer, MAXRECV, 0, (struct sockaddr *) server, &serverAddrLen);
@@ -78,14 +77,15 @@ int Rcopy_setup_wait(int socketNum, char * buffer, char * argv[], struct sockadd
     printf("Before checkSum check\n");
     // message is intact and packet contains f.n ack (9).
     if(checksum == 0 && (buffer[7] == 0 && buffer[6] == 9) ){   // buffer[6] is flag buffer[7] = 0 is ack, 1 is nack
-        nextState = RCOPY_USE_WAIT;
+        *nextState = RCOPY_USE_WAIT;
         printf("nextState = RCOPY_USE_WAIT\n");
         return RCOPY_USE_STATE;
     }
     // flag is data packet (16), or resent data packet (18).
     else if(checksum == 0 && (buffer[6] == 16 || buffer[6] == 18)){
-        nextState = RCOPY_USE_SEND;
+        *nextState = RCOPY_USE_SEND;
         printf("nextState = RCOPY_USE_SEND\n");
+        FirstDataPacketRecvRcopyLen = len;
         return RCOPY_USE_STATE;
     }
 

@@ -89,7 +89,8 @@ int buffer_process_packet(Buffer* buf, uint32_t seq_num, uint8_t* data, uint16_t
                 
                 // Return 1 to send RR for next expected packet
                 return 1;
-            } else if (seq_num > buf->expected) {
+            } 
+            else if (seq_num > buf->expected) {
                 // Out-of-order packet, buffer it
                 uint32_t index = seq_num % buf->buffer_size;
                 
@@ -109,7 +110,8 @@ int buffer_process_packet(Buffer* buf, uint32_t seq_num, uint8_t* data, uint16_t
                 
                 // Return 0 to send SREJ for missing packet
                 return 0;
-            } else {
+            } 
+            else {
                 // Duplicate packet (seq_num < expected), ignore it
                 fprintf(stderr, "Warning: Received duplicate packet %u, expected %u\n", seq_num, buf->expected);
                 return 1; // Still send RR for expected packet
@@ -133,7 +135,8 @@ int buffer_process_packet(Buffer* buf, uint32_t seq_num, uint8_t* data, uint16_t
                 
                 // Flush buffer and determine next action
                 return buffer_flush(buf);
-            } else if (seq_num > buf->expected) {
+            } 
+            else if (seq_num > buf->expected) {
                 // Another out-of-order packet
                 uint32_t index = seq_num % buf->buffer_size;
                 
@@ -150,7 +153,8 @@ int buffer_process_packet(Buffer* buf, uint32_t seq_num, uint8_t* data, uint16_t
                 
                 // Still need the expected packet, send SREJ
                 return 0;
-            } else {
+            } 
+            else {
                 // Duplicate packet, ignore it
                 fprintf(stderr, "Warning: Received duplicate packet %u while buffering\n", seq_num);
                 return 0; // Still need the expected packet, send SREJ
@@ -242,7 +246,7 @@ uint32_t buffer_get_response_seq(Buffer* buf) {
     return buf->expected;
 }
 
-/**
+/**                                                                 
  * Check if buffer should send SREJ for this sequence number
  * 
  * @param buf Pointer to Buffer structure

@@ -26,7 +26,7 @@ int main ( int argc, char *argv[]  )
 { 
 	int socketNum = 0;				
 	int portNumber = 0;
-	sendtoErr_init(atof(argv[1]), DROP_ON, FLIP_ON, DEBUG_ON, RSEED_OFF);
+	sendtoErr_init(atof(argv[1]), DROP_ON, FLIP_ON, DEBUG_ON, RSEED_ON);
 	portNumber = checkArgs(argc, argv);
 
 	socketNum = udpServerSetup(portNumber);
@@ -44,7 +44,6 @@ void processClient(int socketNum)
 	char buffer[MAXBUF + 1];	  
 	struct sockaddr_in6 client;		
 	int clientAddrLen = sizeof(client);	
-
 	setupPollSet();
 	addToPollSet(socketNum);
 	
