@@ -40,14 +40,17 @@ void Header_File_TransferRS(char * buffer, char * argv[]){
 
 
     uint8_t from_filename_len = strlen(argv[1]);
-    memcpy(buffer + 15, argv[1], from_filename_len + 1); // File name + null terminator
+    printf("from_file_name length: %d\n",from_filename_len);
+    memcpy(buffer + 15, argv[1], from_filename_len + 1);
+    printf("from_filename: %s\n", buffer + 15);
+
 }
 
 void Insert_Checksum(char * buffer, uint16_t str_len){
     buffer[4] = 0;
     buffer[5] = 0;
     uint16_t checksum = in_cksum((unsigned short *) buffer, str_len);
-    printf("DEGBUG: Calculated Checksum to send: %d\n", checksum);
+    printf("DEBUG: Calculated Checksum to send: %d\n", checksum);
     memcpy(buffer + 4, &checksum, 2); // Checksum
 }
 

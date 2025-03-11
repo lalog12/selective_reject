@@ -10,7 +10,7 @@
 #include "packet.h"
 #include "safeUtil.h"
 #include "pollLib.h"
-
+#include "globals.h"
 
 #define MAXBUF 1407
 

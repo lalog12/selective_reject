@@ -10,6 +10,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include "server_use.h" 
 #include "server_setup.h"
 #include "gethostbyname.h"
 #include "networks.h"
@@ -26,7 +27,7 @@ int main ( int argc, char *argv[]  )
 { 
 	int socketNum = 0;				
 	int portNumber = 0;
-	sendtoErr_init(atof(argv[1]), DROP_ON, FLIP_ON, DEBUG_ON, RSEED_ON);
+	sendtoErr_init(atof(argv[1]), DROP_ON, FLIP_ON, DEBUG_ON, RSEED_OFF);
 	portNumber = checkArgs(argc, argv);
 
 	socketNum = udpServerSetup(portNumber);
@@ -46,6 +47,8 @@ void processClient(int socketNum)
 	int clientAddrLen = sizeof(client);	
 	setupPollSet();
 	addToPollSet(socketNum);
+
+
 	
 	FILE * fp = NULL;
 
@@ -53,6 +56,17 @@ void processClient(int socketNum)
 	// {
 
 	ServerSetupFSM(socketNum, buffer, fp, (struct sockaddr *) &client, &clientAddrLen, dataLen);
+	printf("After ServerSetupFSM\n");
+
+	strcpy(filenameString, buffer + 15);
+	fflush(stdout);
+	printf("File name string %s\n", filenameString);
+	fflush(stdout);
+	fp = fopen(filenameString, "rb");
+
+	
+	serverUseFSM(socketNum, fp, (struct sockaddr *) &client, &clientAddrLen);
+
 
 		// dataLen = safeRecvfrom(socketNum, buffer, MAXBUF, 0, (struct sockaddr *) &client, &clientAddrLen)
 		// printf("Received message from client with ");

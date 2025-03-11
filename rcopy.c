@@ -42,7 +42,7 @@ int main (int argc, char *argv[])
 	
 	socketNum = setupUdpClientToServer(&server, argv[6], portNumber);
 
-	sendErr_init(atof(argv[5]), DROP_ON, FLIP_ON, DEBUG_ON, RSEED_ON);  
+	sendErr_init(atof(argv[5]), DROP_ON, FLIP_ON, DEBUG_ON, RSEED_OFF);  
 
 	talkToServer(socketNum, &server, argv, portNumber);
 	
@@ -57,13 +57,14 @@ void talkToServer(int socketNum, struct sockaddr_in6 * server, char * argv[], in
 	// char * ipString = NULL;
 	// int dataLen = 0; 
 	char buffer[atol(argv[4])];    // argv[4] is rcopy buffer-size
-
+	printf("Window Size: %s\n", argv[3]);
+	printf("Buffer Size: %s\n", argv[4]);
 	setupPollSet();
 	addToPollSet(socketNum);
 
 	int outputfd = open(argv[2], O_WRONLY | O_TRUNC | O_CREAT, 0666);   // write to file, delete everything beforehand, create file if doesn't exist, everyone can read and write
-
-	Buffer * buffer_man = buffer_init(atol(argv[5]), outputfd); // argv[5] is server's window size.  // need to be same size do that packets don't overwrite each other using %
+	
+	Buffer * buffer_man = buffer_init(atol(argv[3]), outputfd); // argv[3] is server's window size.  // need to be same size do that packets don't overwrite each other using %
 
 	uint8_t nextState;
 

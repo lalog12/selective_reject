@@ -9,7 +9,7 @@ CC= gcc
 CFLAGS= -g -Wall
 LIBS = 
 
-OBJS = networks.o gethostbyname.o pollLib.o safeUtil.o packet.o rcopy_setup.o server_setup.o buffer.o rcopy_use.o globals.o
+OBJS = networks.o gethostbyname.o pollLib.o safeUtil.o packet.o rcopy_setup.o server_setup.o buffer.o rcopy_use.o globals.o server_use.o window.o
 
 #uncomment next two lines if your using sendtoErr() library
 LIBS += libcpe464.2.21.a -lstdc++ -ldl

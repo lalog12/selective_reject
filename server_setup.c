@@ -29,6 +29,7 @@ void ServerSetupFSM(int socketNum, char * buffer, FILE * fp, struct sockaddr * c
 }
 
 void ServerSetupTeardown(int socketNum, char * buffer, struct sockaddr * client, int * clientAddrLen){
+
     IncrementSeqNum(buffer);
     buffer[6] = 9;      // response to filename packet
     buffer[7] = 1;      // error
@@ -54,6 +55,17 @@ int ServerSetupStart(int socketNum, char * buffer, FILE * fp, uint16_t dataLen, 
 
     pollCall(-1);
     dataLen = safeRecvfrom(socketNum, buffer, MAXBUF, 0, (struct sockaddr *) client, clientAddrLen);
+
+    memcpy(&serverWindowLength, buffer + 7,  4); // Window Size
+    serverWindowLength = ntohl(serverWindowLength);                    
+    printf("server window length: %d\n", serverWindowLength);
+    memcpy(&rcopyBufferLength, buffer + 11, 4);
+    rcopyBufferLength = ntohl(rcopyBufferLength);
+    printf("server buffer length: %d\n", rcopyBufferLength);
+    printf("txt file: %s\n", buffer + 15);
+
+    //strcpy(filenameString, buffer + 15);
+   // printf("File Name string from: %s\n", filenameString);
 
     uint16_t checksum = Checksum_Corrupt(buffer, dataLen);
 
